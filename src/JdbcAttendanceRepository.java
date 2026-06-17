@@ -1,9 +1,13 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JdbcAttendanceRepository implements  AttendanceRepository {
 	
@@ -35,5 +39,56 @@ public class JdbcAttendanceRepository implements  AttendanceRepository {
 			e.printStackTrace();
 		}
 			return 0;
+	}
+	
+	@Override
+	public List<AttendanceDetail> findAllWithEmployee() {
+		List<AttendanceDetail> attendanceDetails = new ArrayList<>();
+
+		String sql = "select att.id as attendance_id, "
+		           + "att.employee_id, "
+		           + "emp.name as employee_name, "
+		           + "emp.department, "
+		           + "att.work_date, "
+		           + "att.start_time, "
+		           + "att.end_time, "
+		           + "att.status as attendance_status "
+		           + "from daily_attendances as att "
+		           + "left join employees as emp "
+		           + "on emp.id = att.employee_id "
+		           + "order by att.work_date asc, att.id asc";
+
+		try (
+			Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+		) {
+			while (resultSet.next()) {
+				int attendanceId = resultSet.getInt("attendance_id");
+				int employeeId = resultSet.getInt("employee_id");
+				String employeeName = resultSet.getString("employee_name");
+				String department = resultSet.getString("department");
+				LocalDate workDate = resultSet.getDate("work_date").toLocalDate();
+				LocalTime startTime = resultSet.getTime("start_time").toLocalTime();
+				LocalTime endTime = resultSet.getTime("end_time").toLocalTime();
+				String attendanceStatus = resultSet.getString("attendance_status");
+
+				attendanceDetails.add(new AttendanceDetail(
+						attendanceId,
+						employeeId,
+						employeeName,
+						department,
+						workDate,
+						startTime,
+						endTime,
+						attendanceStatus
+				));
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return attendanceDetails;
 	}
 }
