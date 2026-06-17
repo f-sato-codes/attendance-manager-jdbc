@@ -8,4 +8,6 @@ public interface AttendanceRepository {
 				LocalTime endTime, String status);
 	
 	List<AttendanceDetail> findAllWithEmployee();
+	
+	List<AttendanceDetail> findByEmployeeId(int employeeId);
 }

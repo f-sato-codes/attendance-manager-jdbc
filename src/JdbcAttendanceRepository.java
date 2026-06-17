@@ -16,6 +16,7 @@ public class JdbcAttendanceRepository implements  AttendanceRepository {
 	private static final String USER = "product_user";
 	private static final String PASSWORD = "product_pass";
 	
+	//データの挿入
 	@Override
 	public int insert(int employeeId, LocalDate workDate, LocalTime startTime,
 					LocalTime endTime, String status){
@@ -41,6 +42,7 @@ public class JdbcAttendanceRepository implements  AttendanceRepository {
 			return 0;
 	}
 	
+	//社員勤怠一覧
 	@Override
 	public List<AttendanceDetail> findAllWithEmployee() {
 		List<AttendanceDetail> attendanceDetails = new ArrayList<>();
@@ -91,4 +93,54 @@ public class JdbcAttendanceRepository implements  AttendanceRepository {
 
 		return attendanceDetails;
 	}
+
+	//指定した社員の勤怠の一覧
+	@Override
+	public List<AttendanceDetail> findByEmployeeId(int employeeId) {
+		List<AttendanceDetail> attendanceDetails  = new ArrayList<>();
+
+		String sql = "select att.id as attendance_id,att.employee_id,"
+				+ "emp.name as employee_name,"
+				+ "	emp.department,att.work_date,"
+				+ "	att.start_time,att.end_time,"
+				+ "	att.status as attendance_status "
+				+ "	from daily_attendances as att left join employees as emp"
+				+ "	on emp.id = att.employee_id"
+				+ "	where att.employee_id = ?"
+				+ "  	order by att.work_date asc,att.id asc";
+		
+	try (
+		Connection connection = DriverManager.getConnection(URL,USER,PASSWORD);
+		PreparedStatement statement = connection.prepareStatement(sql);
+		){
+		statement.setInt(1,employeeId);
+		ResultSet resultSet = statement.executeQuery();
+
+		while(resultSet.next()) {	
+			int attendanceId = resultSet.getInt("attendance_id");
+			int employeeIdFromDb  = resultSet.getInt("employee_id");
+			String employeeName = resultSet.getString("employee_name");
+			String department = resultSet.getString("department");
+			LocalDate workDate = resultSet.getDate("work_date").toLocalDate();
+			LocalTime startTime = resultSet.getTime("start_time").toLocalTime();
+			LocalTime endTime = resultSet.getTime("end_time").toLocalTime();
+			String attendanceStatus = resultSet.getString("attendance_status");
+			
+			attendanceDetails.add(new AttendanceDetail(
+					attendanceId,
+					employeeIdFromDb,
+					employeeName,
+					department,
+					workDate,
+					startTime,
+					endTime,
+					attendanceStatus
+			));
+		}
+	} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+		return attendanceDetails ;
+	}
+	
 }
