@@ -143,4 +143,31 @@ public class JdbcAttendanceRepository implements  AttendanceRepository {
 		return attendanceDetails ;
 	}
 	
+	@Override
+	public List<DepartmentAttendanceCount> findDepartmentAttendanceCounts() {
+		List<DepartmentAttendanceCount> departmentAttendanceCounts  = new ArrayList<>();
+		String sql = "select emp.department,count(att.id) as attendance_count"
+				+ " from employees as emp left join daily_attendances as att"
+				+ " on emp.id = att.employee_id "
+				+ " group by emp.department"
+				+ " order by attendance_count desc";
+		
+		
+		try (Connection connection = DriverManager.getConnection(URL,USER,PASSWORD);
+			Statement statement = connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sql);
+			)
+		{
+			while(resultSet.next()) {
+				String department = resultSet.getString("department"); 
+				int attendanceCount  = resultSet.getInt("attendance_count");
+				departmentAttendanceCounts .add(new DepartmentAttendanceCount(
+						department,attendanceCount 
+						));	
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return departmentAttendanceCounts;
+	}
 }

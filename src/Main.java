@@ -8,8 +8,16 @@ public class Main {
 		AttendanceRepository attRepository = new JdbcAttendanceRepository();
 		List<Employee> employees = empRepository.findAll();
 	
+		
+		List<DepartmentAttendanceCount> attCounts = attRepository.findDepartmentAttendanceCounts();
+		
+		for(DepartmentAttendanceCount attCount : attCounts) {
+			System.out.println(attCount);
+		}
+		
+		/*
 		List<AttendanceDetail> attDetails = attRepository.findByEmployeeId(1);
-
+	
 		for (AttendanceDetail attDetail : attDetails) {
 			System.out.println(attDetail);
 		}

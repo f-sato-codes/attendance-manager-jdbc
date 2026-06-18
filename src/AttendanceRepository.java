@@ -10,4 +10,7 @@ public interface AttendanceRepository {
 	List<AttendanceDetail> findAllWithEmployee();
 	
 	List<AttendanceDetail> findByEmployeeId(int employeeId);
+	
+	List<DepartmentAttendanceCount> findDepartmentAttendanceCounts();
+	
 }
